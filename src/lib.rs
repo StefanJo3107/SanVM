@@ -1,12 +1,14 @@
+pub mod runner;
+
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::format;
+use std::fs::File;
+use std::io::Read;
 use std::rc::Rc;
+use postcard::{Error, from_bytes};
 use sanscript_common::chunk::OpCode;
 use sanscript_common::debug::disassemble_instruction;
-use sanscript_common::value::{FunctionData, FunctionType, Value, ValueArray};
-use sanscript_frontend::compiler::Compiler;
-use sanscript_frontend::scanner::Scanner;
+use sanscript_common::value::{FunctionData, Value, ValueArray};
 use crate::InterpretResult::{InterpretCompileError, InterpretOK, InterpretRuntimeError};
 
 pub enum InterpretResult {
@@ -53,15 +55,16 @@ impl VM {
         }
     }
 
-    pub fn interpret(&mut self, source: String) -> InterpretResult {
-        if self.debug_level == DebugLevel::Verbose || self.debug_level == DebugLevel::TokenTableOnly {
-            let mut scanner = Scanner::new(source.as_str());
-            scanner.tokenize_source();
-        }
+    pub fn interpret(&mut self, bytecode: Result<FunctionData, Error>) -> InterpretResult {
+        // if self.debug_level == DebugLevel::Verbose || self.debug_level == DebugLevel::TokenTableOnly {
+        //     let mut scanner = Scanner::new(source.as_str());
+        //     scanner.tokenize_source();
+        // }
 
-        let mut compiler = Compiler::new(source.as_str(), FunctionType::Script);
+        // let mut compiler = Compiler::new(source.as_str(), FunctionType::Script);
 
-        if let Some(function) = compiler.compile() {
+
+        if let Ok(function) = bytecode {
             self.stack.push(Value::ValFunction(function.clone()));
             self.frames.borrow_mut().push(CallFrame { function: function.clone(), ip: 0, print_ip: 0, stack_start: self.stack.len() - 1 });
             let mut frames_cloned = self.frames.clone();
