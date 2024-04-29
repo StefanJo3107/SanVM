@@ -32,3 +32,9 @@ fn read_file(bytecode_path: &str) {
     let mut vm = VM::new(DebugLevel::None);
     vm.interpret(out);
 }
+
+pub fn deserialize_bytecode(bytecode: &[u8]) {
+    let out: Result<FunctionData, Error> = from_bytes(&bytecode);
+    let mut vm = VM::new(DebugLevel::None);
+    vm.interpret(out);
+}
