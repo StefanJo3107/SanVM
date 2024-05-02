@@ -8,7 +8,8 @@ use std::rc::Rc;
 use postcard::{Error, from_bytes};
 use sanscript_common::chunk::OpCode;
 use sanscript_common::debug::disassemble_instruction;
-use sanscript_common::value::{FunctionData, Value, ValueArray};
+use sanscript_common::native_functions::get_function_from_data;
+use sanscript_common::value::{FunctionData, NativeFunctionData, Value, ValueArray};
 use crate::InterpretResult::{InterpretCompileError, InterpretOK, InterpretRuntimeError};
 
 pub enum InterpretResult {
@@ -47,12 +48,15 @@ pub struct VM {
 
 impl VM {
     pub fn new(debug_level: DebugLevel) -> VM {
-        VM {
+        let mut vm = VM {
             frames: Rc::new(RefCell::new(vec![])),
             stack: vec![],
             globals: HashMap::new(),
             debug_level,
-        }
+        };
+
+        vm.globals.insert(String::from("sleep"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("sleep")}));
+        vm
     }
 
     pub fn interpret(&mut self, bytecode: Result<FunctionData, Error>) -> InterpretResult {
@@ -305,7 +309,7 @@ impl VM {
                 OpCode::OpCall(arg_count) => {
                     let callee = self.stack.get(self.stack.len() - 1 - arg_count).unwrap_or_else(|| { panic!("Couldn't get callee value!") }).clone();
                     let mut new_frame = frame.clone();
-                    if !self.call_value(callee, &mut new_frame, frame_count, *arg_count) {
+                    if !self.call_value(callee.clone(), &mut new_frame, frame_count, *arg_count) {
                         return InterpretRuntimeError;
                     }
 
@@ -313,9 +317,11 @@ impl VM {
                         println!();
                         println!("\x1B[32;1m------------------ {}({}) ------------------\x1B[0m", new_frame.function.name, new_frame.function.arity);
                     }
-                    frames_mut.push(new_frame);
 
-                    continue;
+                    if !matches!(callee, Value::ValNativeFn(_)) {
+                        frames_mut.push(new_frame);
+                        continue;
+                    }
                 }
             };
 
@@ -326,6 +332,15 @@ impl VM {
     fn call_value(&mut self, callee: Value, frame: &mut CallFrame, frame_count: usize, arg_count: usize) -> bool {
         if let Value::ValFunction(func) = callee {
             return self.call(func, frame, frame_count, arg_count);
+        } else if let Value::ValNativeFn(func) = callee {
+            let native = get_function_from_data(&func);
+            let mut args: Vec<Value> = vec![];
+            for _ in 0..func.arity {
+                args.push(self.stack.pop().expect("Stack is empty."));
+            }
+            let result = native(args);
+            self.stack.push(result);
+            return true;
         }
 
         self.runtime_error("Can only call functions", frame);
