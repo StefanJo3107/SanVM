@@ -90,6 +90,10 @@ impl VM {
         return matches!(self.stack.last().unwrap_or_else(|| {panic!("Error reading last element of the stack!")}), Value::ValNumber(_)) && matches!(self.stack.get(self.stack.len() - 2).unwrap_or_else(||{panic!("Error reading second to last element of the stack!");}), Value::ValNumber(_));
     }
 
+    fn is_hid_operands(&self) -> bool {
+        return matches!(self.stack.last().unwrap_or_else(|| {panic!("Error reading last element of the stack!")}), Value::ValKey(_)) && matches!(self.stack.get(self.stack.len() - 2).unwrap_or_else(||{panic!("Error reading second to last element of the stack!");}), Value::ValKey(_));
+    }
+
     fn is_string_operands(&self) -> bool {
         return matches!(self.stack.last().unwrap_or_else(|| {panic!("Error reading last element of the stack!")}), Value::ValString(_)) && matches!(self.stack.get(self.stack.len() - 2).unwrap_or_else(||{panic!("Error reading second to last element of the stack!");}), Value::ValString(_));
     }
@@ -97,6 +101,18 @@ impl VM {
     //most important function so far
     fn run(&mut self) -> InterpretResult {
         macro_rules! binary_op {
+            (Value::ValKey, +, $frame: expr) => {
+                if let Value::ValKey(mut b) = self.stack.pop().unwrap() {
+                    if let Value::ValKey(mut a) = self.stack.pop().unwrap() {
+                        if b.len() + a.len() > 6 {
+                            self.runtime_error("Only 6 key rollover supported, but tried to press more", $frame);
+                            return InterpretRuntimeError;
+                        }
+                        a.append(&mut b);
+                        self.stack.push(Value::ValKey(a));
+                    }
+                }
+            };
             (Value::ValString, +) => {
                 if let Value::ValString(b) = self.stack.pop().unwrap() {
                     if let Value::ValString(a) = self.stack.pop().unwrap() {
@@ -251,10 +267,10 @@ impl VM {
                 OpCode::OpAdd => {
                     if self.is_number_operands() {
                         binary_op!(Value::ValNumber, +, frame);
-                    }
-
-                    if self.is_string_operands() {
+                    } else if self.is_string_operands() {
                         binary_op!(Value::ValString, +);
+                    } else if self.is_hid_operands() {
+                        binary_op!(Value::ValKey, +, frame);
                     }
                 }
                 OpCode::OpSubtract => {
