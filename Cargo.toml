@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 postcard = { version = "1.0.0", features = ["alloc"] }
 serde = { version = "1.0.*", default-features = false }
-sanscript_common = {path= "../san-common" }
+sanscript_common = {path= "../SanCommon" }

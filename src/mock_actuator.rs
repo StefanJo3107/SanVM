@@ -1,3 +1,4 @@
+use std::time::Duration;
 use sanscript_common::hid_actuator::HidActuator;
 
 pub struct MockActuator {
@@ -25,11 +26,15 @@ impl HidActuator for MockActuator {
         println!("Mouse wheel scrolled");
     }
 
-    fn key_down(&mut self, key: &[u8; 6]) {
+    fn key_down(&mut self, key: &Vec<u8>) {
         println!("Key down");
     }
 
     fn clear_keys(&mut self) {
         println!("Cleared keys");
+    }
+
+    fn sleep(&mut self, duration_ms: usize) {
+        std::thread::sleep(Duration::from_millis(duration_ms as u64));
     }
 }

@@ -1,5 +1,5 @@
 pub mod runner;
-mod mock_actuator;
+pub mod mock_actuator;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
