@@ -5,6 +5,7 @@ use std::process::exit;
 use postcard::{Error, from_bytes, to_allocvec};
 use sanscript_common::value::{FunctionData, FunctionType};
 use crate::{DebugLevel, VM};
+use crate::mock_actuator::MockActuator;
 
 pub fn run() {
     if env::args().len() == 2 {
@@ -29,12 +30,12 @@ fn read_file(bytecode_path: &str) {
     let mut bytecode: Vec<u8> = vec![];
     bytecode_file.read_to_end(&mut bytecode).expect("Cannot read contents of a file");
     let out: Result<FunctionData, Error> = from_bytes(&bytecode.as_slice());
-    let mut vm = VM::new(DebugLevel::None);
+    let mut vm = VM::new(MockActuator{}, DebugLevel::None);
     vm.interpret(out);
 }
 
 pub fn deserialize_bytecode(bytecode: &[u8]) {
     let out: Result<FunctionData, Error> = from_bytes(&bytecode);
-    let mut vm = VM::new(DebugLevel::None);
+    let mut vm = VM::new(MockActuator{}, DebugLevel::None);
     vm.interpret(out);
 }

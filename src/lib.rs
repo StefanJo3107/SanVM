@@ -1,4 +1,5 @@
 pub mod runner;
+mod mock_actuator;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -8,7 +9,8 @@ use std::rc::Rc;
 use postcard::{Error, from_bytes};
 use sanscript_common::chunk::OpCode;
 use sanscript_common::debug::disassemble_instruction;
-use sanscript_common::native_functions::get_function_from_data;
+use sanscript_common::hid_actuator::HidActuator;
+use sanscript_common::native_functions::NativeFns;
 use sanscript_common::value::{FunctionData, NativeFunctionData, Value, ValueArray};
 use crate::InterpretResult::{InterpretCompileError, InterpretOK, InterpretRuntimeError};
 
@@ -39,23 +41,32 @@ pub struct CallFrame {
     stack_start: usize,
 }
 
-pub struct VM {
+pub struct VM<T: HidActuator> {
     frames: FrameRef,
     stack: Vec<Value>,
     globals: HashMap<String, Value>,
+    native_functions: NativeFns<T>,
     debug_level: DebugLevel,
 }
 
-impl VM {
-    pub fn new(debug_level: DebugLevel) -> VM {
+impl<T: HidActuator> VM<T> {
+    pub fn new(hid_actuator: T, debug_level: DebugLevel) -> VM<T> {
         let mut vm = VM {
             frames: Rc::new(RefCell::new(vec![])),
             stack: vec![],
             globals: HashMap::new(),
+            native_functions: NativeFns::new(hid_actuator),
             debug_level,
         };
 
         vm.globals.insert(String::from("sleep"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("sleep")}));
+        vm.globals.insert(String::from("random_int"), Value::ValNativeFn(NativeFunctionData{arity: 2, name: String::from("random_int")}));
+        vm.globals.insert(String::from("random_float"), Value::ValNativeFn(NativeFunctionData{arity: 2, name: String::from("random_float")}));
+        vm.globals.insert(String::from("inject_keys"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("inject_keys")}));
+        vm.globals.insert(String::from("inject_sequence"), Value::ValNativeFn(NativeFunctionData{arity: 3, name: String::from("inject_sequence")}));
+        vm.globals.insert(String::from("release_keys"), Value::ValNativeFn(NativeFunctionData{arity: 0, name: String::from("release_keys")}));
+        vm.globals.insert(String::from("string_to_keys"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("string_to_keys")}));
+        vm.globals.insert(String::from("type_string"), Value::ValNativeFn(NativeFunctionData{arity: 3, name: String::from("type_string")}));
         vm
     }
 
@@ -282,6 +293,27 @@ impl VM {
                 OpCode::OpDivide => {
                     binary_op!(Value::ValNumber, /, frame);
                 }
+                OpCode::OpPipe => {
+                    let s1 = self.stack.pop().unwrap();
+                    let s2 = self.stack.pop().unwrap();
+                    if let Value::ValKey(b) = s1 {
+                        if let Value::ValKey(a) = s2 {
+                            let sequence = Value::ValKeySequence(vec![a, b]);
+                            self.stack.push(sequence);
+                        } else if let Value::ValKeySequence(mut a) = s2 {
+                            a.push(b);
+                            self.stack.push(Value::ValKeySequence(a));
+                        }
+                    } else if let Value::ValKeySequence(mut b) = s1 {
+                        if let Value::ValKey(a) = s2 {
+                            b.insert(0, a);
+                            self.stack.push(Value::ValKeySequence(b));
+                        } else if let Value::ValKeySequence(mut a) = s2 {
+                            a.append(&mut b);
+                            self.stack.push(Value::ValKeySequence(a));
+                        }
+                    }
+                }
                 OpCode::OpTrue => {
                     self.stack.push(Value::ValBool(true))
                 }
@@ -349,12 +381,13 @@ impl VM {
         if let Value::ValFunction(func) = callee {
             return self.call(func, frame, frame_count, arg_count);
         } else if let Value::ValNativeFn(func) = callee {
-            let native = get_function_from_data(&func);
+            let native = self.native_functions.get_function_from_data(&func);
             let mut args: Vec<Value> = vec![];
             for _ in 0..func.arity {
                 args.push(self.stack.pop().expect("Stack is empty."));
             }
-            let result = native(args);
+            let result = native(&mut self.native_functions, args);
+            self.stack.pop();
             self.stack.push(result);
             return true;
         }
