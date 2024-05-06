@@ -63,6 +63,7 @@ impl<T: HidActuator> VM<T> {
         vm.globals.insert(String::from("random_int"), Value::ValNativeFn(NativeFunctionData{arity: 2, name: String::from("random_int")}));
         vm.globals.insert(String::from("random_float"), Value::ValNativeFn(NativeFunctionData{arity: 2, name: String::from("random_float")}));
         vm.globals.insert(String::from("inject_keys"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("inject_keys")}));
+        vm.globals.insert(String::from("hold_keys"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("hold_keys")}));
         vm.globals.insert(String::from("inject_sequence"), Value::ValNativeFn(NativeFunctionData{arity: 3, name: String::from("inject_sequence")}));
         vm.globals.insert(String::from("release_keys"), Value::ValNativeFn(NativeFunctionData{arity: 0, name: String::from("release_keys")}));
         vm.globals.insert(String::from("string_to_keys"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("string_to_keys")}));
@@ -71,13 +72,6 @@ impl<T: HidActuator> VM<T> {
     }
 
     pub fn interpret(&mut self, bytecode: Result<FunctionData, Error>) -> InterpretResult {
-        // if self.debug_level == DebugLevel::Verbose || self.debug_level == DebugLevel::TokenTableOnly {
-        //     let mut scanner = Scanner::new(source.as_str());
-        //     scanner.tokenize_source();
-        // }
-
-        // let mut compiler = Compiler::new(source.as_str(), FunctionType::Script);
-
 
         if let Ok(function) = bytecode {
             self.stack.push(Value::ValFunction(function.clone()));
