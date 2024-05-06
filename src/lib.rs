@@ -1,12 +1,11 @@
 pub mod runner;
-pub mod mock_actuator;
+pub mod actuators;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fs::File;
 use std::io::Read;
 use std::rc::Rc;
-use postcard::{Error, from_bytes};
+use postcard::Error;
 use sanscript_common::chunk::OpCode;
 use sanscript_common::debug::disassemble_instruction;
 use sanscript_common::hid_actuator::HidActuator;

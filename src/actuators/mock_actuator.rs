@@ -5,6 +5,12 @@ pub struct MockActuator {
 
 }
 
+impl MockActuator {
+    pub fn new() -> MockActuator {
+        MockActuator {}
+    }
+}
+
 impl HidActuator for MockActuator {
     fn get_cursor_position(&self) -> (u16, u16) {
         (0, 0)

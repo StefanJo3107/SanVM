@@ -6,7 +6,6 @@ use postcard::{Error, from_bytes, to_allocvec};
 use sanscript_common::hid_actuator::HidActuator;
 use sanscript_common::value::{FunctionData, FunctionType};
 use crate::{DebugLevel, VM};
-use crate::mock_actuator::MockActuator;
 
 pub fn run<T: HidActuator>(hid_actuator: T) {
     if env::args().len() == 2 {
