@@ -1,5 +1,5 @@
 use std::time::Duration;
-use sanscript_common::hid_actuator::HidActuator;
+use san_common::hid_actuator::HidActuator;
 
 pub struct MockActuator {
 

@@ -6,11 +6,11 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::rc::Rc;
 use postcard::Error;
-use sanscript_common::chunk::OpCode;
-use sanscript_common::debug::disassemble_instruction;
-use sanscript_common::hid_actuator::HidActuator;
-use sanscript_common::native_functions::NativeFns;
-use sanscript_common::value::{FunctionData, NativeFunctionData, Value, ValueArray};
+use san_common::chunk::OpCode;
+use san_common::debug::disassemble_instruction;
+use san_common::hid_actuator::HidActuator;
+use san_common::native_functions::NativeFns;
+use san_common::value::{FunctionData, NativeFunctionData, Value, ValueArray};
 use crate::InterpretResult::{InterpretCompileError, InterpretOK, InterpretRuntimeError};
 
 pub enum InterpretResult {

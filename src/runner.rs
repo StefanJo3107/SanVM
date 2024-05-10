@@ -3,8 +3,8 @@ use std::fs::File;
 use std::io::Read;
 use std::process::exit;
 use postcard::{Error, from_bytes, to_allocvec};
-use sanscript_common::hid_actuator::HidActuator;
-use sanscript_common::value::{FunctionData, FunctionType};
+use san_common::hid_actuator::HidActuator;
+use san_common::value::{FunctionData, FunctionType};
 use crate::{DebugLevel, VM};
 
 pub fn run<T: HidActuator>(hid_actuator: T) {
