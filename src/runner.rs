@@ -15,7 +15,7 @@ pub fn run<T: HidActuator>(hid_actuator: T) {
             exit(1);
         }
     } else {
-        eprintln!("Usage: SanScript [path]");
+        eprintln!("Usage: sanvm <bytecode path>");
         exit(1);
     }
 }
