@@ -67,6 +67,10 @@ impl<T: HidActuator> VM<T> {
         vm.globals.insert(String::from("release_keys"), Value::ValNativeFn(NativeFunctionData{arity: 0, name: String::from("release_keys")}));
         vm.globals.insert(String::from("string_to_keys"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("string_to_keys")}));
         vm.globals.insert(String::from("type_string"), Value::ValNativeFn(NativeFunctionData{arity: 3, name: String::from("type_string")}));
+        vm.globals.insert(String::from("mouse_move"), Value::ValNativeFn(NativeFunctionData{arity: 2, name: String::from("mouse_move")}));
+        vm.globals.insert(String::from("mouse_click"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("mouse_click")}));
+        vm.globals.insert(String::from("mouse_hold"), Value::ValNativeFn(NativeFunctionData{arity: 1, name: String::from("mouse_hold")}));
+        vm.globals.insert(String::from("mouse_up"), Value::ValNativeFn(NativeFunctionData{arity: 0, name: String::from("mouse_up")}));
         vm
     }
 

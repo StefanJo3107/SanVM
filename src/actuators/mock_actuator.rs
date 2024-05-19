@@ -12,11 +12,7 @@ impl MockActuator {
 }
 
 impl HidActuator for MockActuator {
-    fn get_cursor_position(&self) -> (u16, u16) {
-        (0, 0)
-    }
-
-    fn move_cursor(&mut self, x: i16, y: i16) {
+    fn move_cursor(&mut self, x: i8, y: i8) {
         println!("Moving cursor");
     }
 
@@ -28,7 +24,7 @@ impl HidActuator for MockActuator {
         println!("Mouse up");
     }
 
-    fn scroll_mouse_wheel(&mut self, x: i16, y: i16) {
+    fn scroll_mouse_wheel(&mut self, x: i8, y: i8) {
         println!("Mouse wheel scrolled");
     }
 
