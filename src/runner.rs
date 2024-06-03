@@ -34,7 +34,7 @@ fn read_file<T: HidActuator>(hid_actuator: T, bytecode_path: &str) {
     vm.interpret(out);
 }
 
-pub fn deserialize_bytecode<T: HidActuator>(hid_actuator: T, bytecode: &[u8]) {
+pub fn run_bytecode<T: HidActuator>(hid_actuator: T, bytecode: &[u8]) {
     let out: Result<FunctionData, Error> = from_bytes(&bytecode);
     let mut vm = VM::new(hid_actuator, DebugLevel::None);
     vm.interpret(out);
