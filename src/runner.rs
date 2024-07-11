@@ -30,7 +30,7 @@ fn read_file<T: HidActuator>(hid_actuator: T, bytecode_path: &str) {
     let mut bytecode: Vec<u8> = vec![];
     bytecode_file.read_to_end(&mut bytecode).expect("Cannot read contents of a file");
     let out: Result<FunctionData, Error> = from_bytes(&bytecode.as_slice());
-    let mut vm = VM::new(hid_actuator, DebugLevel::None);
+    let mut vm = VM::new(hid_actuator, DebugLevel::Verbose);
     vm.interpret(out);
 }
 
