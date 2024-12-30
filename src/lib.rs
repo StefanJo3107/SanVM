@@ -3,7 +3,6 @@ pub mod actuators;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::io::Read;
 use std::rc::Rc;
 use postcard::Error;
 use san_common::chunk::OpCode;
@@ -29,7 +28,7 @@ pub enum DebugLevel {
 
 type FrameRef = Rc<RefCell<Vec<CallFrame>>>;
 
-const STACK_SIZE: usize = 256;
+// const STACK_SIZE: usize = 256;
 const MAX_CALL_FRAME_DEPTH: usize = 256;
 
 #[derive(Clone)]
@@ -79,10 +78,10 @@ impl<T: HidActuator> VM<T> {
         if let Ok(function) = bytecode {
             self.stack.push(Value::ValFunction(function.clone()));
             self.frames.borrow_mut().push(CallFrame { function: function.clone(), ip: 0, print_ip: 0, stack_start: self.stack.len() - 1 });
-            let mut frames_cloned = self.frames.clone();
+            let frames_cloned = self.frames.clone();
             let mut frames_borrowed = frames_cloned.borrow_mut();
             let frame_count = frames_borrowed.len();
-            let mut frame = frames_borrowed.last_mut().unwrap_or_else(|| { panic!("Call frame vector is empty!") });
+            let frame = frames_borrowed.last_mut().unwrap_or_else(|| { panic!("Call frame vector is empty!") });
             self.call(function, frame, frame_count, 0);
             //should drop frames_borrowed because frames get borrowed mutably inside self.run
             drop(frames_borrowed);
